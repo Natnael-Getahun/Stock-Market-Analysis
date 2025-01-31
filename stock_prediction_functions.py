@@ -128,7 +128,7 @@ def get_plots(data):
     plt.show()
 
 # A function to help clean data
-def clean_data(data, relevel_column=True, fill_na=True, winsorize_outliers=True):
+def clean_data(data, relevel_column=True, fill_na=True, winsorize_outliers=True, drop_duplicates=True):
     """
     Cleans stock market data by optionally releveling column indices, filling missing values, 
     and applying IQR-based Winsorization to handle outliers.
@@ -173,6 +173,11 @@ def clean_data(data, relevel_column=True, fill_na=True, winsorize_outliers=True)
             data[column] = np.where(data[column] < low_bound, low_bound, data[column])
             data[column] = np.where(data[column] > upper_bound, upper_bound, data[column])
         print("Outliers winsorized.")
+    
+    # Drop duplicates
+    if drop_duplicates and (data.duplicated().sum() > 0):
+        data = data.drop_duplicates()
+        print("Dropped duplicates.")
     return data
 
 # A function to summarize closing prices at different intervals
@@ -406,8 +411,10 @@ def feature_engineering_and_save_data(data, file_name, ema_span=20, bb_window=20
 # A function to run prophet model
 def run_prophet(
     data, 
+    train = True,
+    predict=True,
+    prophet=None,
     cross_validate=True, 
-    predict=True, 
     periods=50, 
     seasonality_mode='multiplicative', 
     changepoint_prior_scale=0.1, 
@@ -415,78 +422,108 @@ def run_prophet(
     n_changepoints=50, 
     yearly_seasonality=False, 
     weekly_seasonality=True, 
-    daily_seasonality=True
+    daily_seasonality=True,
+    initial='365 days',
+    period='30 days', 
+    horizon='90 days'
 ):
     """
     Train a Facebook Prophet model on stock market data, perform cross-validation, 
     and make future predictions.
 
     Parameters:
-    - data (pd.DataFrame): DataFrame containing stock market data with 'Datetime', 'Close', 
-      'Volume', 'MACD', and 'ATR' columns.
-    - cross_validate (bool): Whether to perform cross-validation on the model. Default is True.
-    - predict (bool): Whether to make future predictions. Default is True.
-    - periods (int): Number of future periods to predict. Default is 50.
-    - seasonality_mode (str): Prophet's seasonality mode ('additive' or 'multiplicative'). Default is 'multiplicative'.
-    - changepoint_prior_scale (float): Flexibility of the trend change points. Default is 0.1.
-    - seasonality_prior_scale (float): Strength of seasonality prior. Default is 5.0.
-    - n_changepoints (int): Number of trend changepoints. Default is 50.
-    - yearly_seasonality (bool): Enable or disable yearly seasonality. Default is False.
-    - weekly_seasonality (bool): Enable or disable weekly seasonality. Default is True.
-    - daily_seasonality (bool): Enable or disable daily seasonality. Default is True.
+    -----------
+    data : pd.DataFrame
+        DataFrame containing stock market data with 'Datetime', 'Close', 'Volume', 
+        'MACD', and 'ATR' columns.
+    train : bool, optional
+        Whether to perform training on the model. Default is True.
+    predict : bool, optional
+        Whether to make future predictions. Default is True.
+    prophet : a prophet model
+        A model that can be used to make predictions with. Default is None as model can be trained from scratch.
+    cross_validate : bool, optional
+        Whether to perform cross-validation on the model. Default is True.
+    periods : int, optional
+        Number of future periods to predict. Default is 50.
+    seasonality_mode : str, optional
+        Prophet's seasonality mode ('additive' or 'multiplicative'). Default is 'multiplicative'.
+    changepoint_prior_scale : float, optional
+        Flexibility of the trend change points. Default is 0.1.
+    seasonality_prior_scale : float, optional
+        Strength of seasonality prior. Default is 5.0.
+    n_changepoints : int, optional
+        Number of trend changepoints. Default is 50.
+    yearly_seasonality : bool, optional
+        Enable or disable yearly seasonality. Default is False.
+    weekly_seasonality : bool, optional
+        Enable or disable weekly seasonality. Default is True.
+    daily_seasonality : bool, optional
+        Enable or disable daily seasonality. Default is True.
+    initial : str, optional
+        Initial training period for cross-validation. Default is '365 days'.
+    period : str, optional
+        Period between cutoff dates for cross-validation. Default is '30 days'.
+    horizon : str, optional
+        Forecast horizon for cross-validation. Default is '90 days'.
 
     Returns:
-    - prophet (Prophet): Trained Prophet model.
-    - transformed_predictions (pd.DataFrame): DataFrame containing log of future predictions.
-    - predictions : Actual predictions with logarithm reversed.
+    --------
+    prophet : Prophet
+        Trained Prophet model.
+    transformed_predictions : pd.DataFrame
+        DataFrame containing log-transformed future predictions.
+    predictions : pd.Series
+        Actual predictions with logarithm reversed.
     """
     
     # Prepare the dataset
     df = data[['Close', 'Volume', 'MACD', 'ATR']].reset_index()
-    df.rename(columns={'Datetime': 'ds', 'Close': 'y'}, inplace=True)
+    df.rename(columns={'Datetime': 'ds', 'Date' : 'ds', 'Close': 'y'}, inplace=True)
     df['ds'] = df['ds'].dt.tz_localize(None)  # Remove timezone information
     df['y'] = np.log(df['y'])  # Apply log transformation for better trend modeling
 
-    # Create a holiday effect based on US Federal holidays
-    calendar = UnitedStates()
-    holidays = []
-    for year in range(data.index.min().year, data.index.max().year + 2):
-        holidays.extend(calendar.holidays(year))
-    
-    # Convert holiday names to holiday dates
-    holiday_dates = [holiday[0] for holiday in holidays]  # Extract dates from holiday objects
-    holidays_df = pd.DataFrame({
-        'holiday': 'earnings_release',
-        'ds': pd.to_datetime(holiday_dates),
-        'lower_window': -5,  # Effect starts 5 days before
-        'upper_window': 5,   # Effect ends 5 days after
-    })
-    
-    # Initialize Prophet model with provided parameters
-    prophet = Prophet(
-        seasonality_mode=seasonality_mode, 
-        changepoint_prior_scale=changepoint_prior_scale, 
-        seasonality_prior_scale=seasonality_prior_scale, 
-        holidays=holidays_df,
-        n_changepoints=n_changepoints, 
-        yearly_seasonality=yearly_seasonality,
-        weekly_seasonality=weekly_seasonality,
-        daily_seasonality=daily_seasonality
-    )
-    
-    # Add additional regressors
-    prophet.add_regressor('Volume')
-    prophet.add_regressor('MACD')
-    prophet.add_regressor('ATR')
-    
-    # Train the model
-    prophet.fit(df)
-    print("Prophet model fitted.\n")
+    if train:
+        # Create a holiday effect based on US Federal holidays
+        calendar = UnitedStates()
+        holidays = []
+        for year in range(data.index.min().year, data.index.max().year + 2):
+            holidays.extend(calendar.holidays(year))
+        
+        # Convert holiday names to holiday dates
+        holiday_dates = [holiday[0] for holiday in holidays]  # Extract dates from holiday objects
+        holidays_df = pd.DataFrame({
+            'holiday': 'earnings_release',
+            'ds': pd.to_datetime(holiday_dates),
+            'lower_window': -5,  # Effect starts 5 days before
+            'upper_window': 5,   # Effect ends 5 days after
+        })
+        
+        # Initialize Prophet model with provided parameters
+        prophet = Prophet(
+            seasonality_mode=seasonality_mode, 
+            changepoint_prior_scale=changepoint_prior_scale, 
+            seasonality_prior_scale=seasonality_prior_scale, 
+            holidays=holidays_df,
+            n_changepoints=n_changepoints, 
+            yearly_seasonality=yearly_seasonality,
+            weekly_seasonality=weekly_seasonality,
+            daily_seasonality=daily_seasonality
+        )
+        
+        # Add additional regressors
+        prophet.add_regressor('Volume')
+        prophet.add_regressor('MACD')
+        prophet.add_regressor('ATR')
+        
+        # Train the model
+        prophet.fit(df)
+        print("Prophet model fitted.\n")
     
     # Perform cross-validation
     if cross_validate:
         print("Starting cross-validation...\n")
-        df_cv = cross_validation(prophet, initial='365 days', period='30 days', horizon='90 days')
+        df_cv = cross_validation(prophet, initial=initial, period=period, horizon=horizon)
         df_p = performance_metrics(df_cv)
         print(df_p.head())
         print("Cross-validation finished.\n")
