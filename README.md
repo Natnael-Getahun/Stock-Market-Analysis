@@ -37,13 +37,6 @@ The project consists of three main scripts:
    ```
 4. The scripts will update and modify the datasets in **`/Datasets/`** and models in **`/Models/`** based on live data.
 
-## **How to use the Dashboard**
-.
-.
-.
-.
-.
-
 ### **Important Notes**
 - Some models take a long time to train and validate.
 - **`long_range_data_prediction.py`** may take **30 minutes to 3 hours** to run.
