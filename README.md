@@ -31,11 +31,18 @@ The project consists of three main scripts:
 2. Place **`stocks_prediction_functions.py`** in the same directory as the main scripts.
 3. Run any of the three scripts in any order:
    ```sh
-   python short_range_data_prediction.py
-   python medium_range_data_prediction.py
-   python long_range_data_prediction.py
+   python short_range_data_prediction.ipynb
+   python medium_range_data_prediction.ipynb
+   python long_range_data_prediction.ipynb
    ```
 4. The scripts will update and modify the datasets in **`/Datasets/`** and models in **`/Models/`** based on live data.
+
+## **How to use the Dashboard**
+.
+.
+.
+.
+.
 
 ### **Important Notes**
 - Some models take a long time to train and validate.
