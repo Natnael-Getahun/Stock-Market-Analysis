@@ -1,0 +1,10 @@
+numpy
+pandas
+yfinance
+scikit-learn
+prophet
+matplotlib
+mplfinance
+seaborn
+ta
+workalendar
