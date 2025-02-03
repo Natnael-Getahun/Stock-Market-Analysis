@@ -98,11 +98,6 @@ st.title("Stock Market Prediction Dashboard")
 
 # Custom CSS to change the background to dark gray
 
-
-
-
-
-
 st.markdown(
     """
     <style>
@@ -127,15 +122,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-
-
-
-
-
-
-
-
 
 
 # input to selct stock and date range
