@@ -39,7 +39,7 @@ The project consists of three main scripts:
 
 ## **How to Use the Dashboard**
 1. After making sure all the necessary libraries are installed, open **command prompt** or **powershell**.
-2. Change the directory to **'../Stock_Market_Analysis/Dashboard'**.
+2. Change the directory to **'../Stock Market Analysis/Dashboard'**.
 3. Then type run **`streamlit run dashboard.py`**. This will lead you to a localhost webpage.
 4. From the sidebar, choose the ticker of the stock you want. 
 5. Choose the range of data you want to see from the side bar. This will display all hte plots and summary statistics in the dashboard.
