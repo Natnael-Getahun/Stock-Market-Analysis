@@ -37,12 +37,19 @@ The project consists of three main scripts:
    ```
 4. The scripts will update and modify the datasets in **`/Datasets/`** and models in **`/Models/`** based on live data.
 
+## **How to Use the Dashboard**
+1. After making sure all the necessary libraries are installed, run **`dashboard.py`**. This will lead you to a localhost webpage.
+2. From the sidebar, choose the ticker of the stock you want. 
+3. Choose the range of data you want to see from the side bar. This will display all hte plots and summary statistics in the dashboard.
+4. Again from the sidebar, choose the range of prediction you want to see.
+5. Click on the **Run Stock Prediction**.
+6. Enjoy insights into the future!
+
 ### **Important Notes**
 - Some models take a long time to train and validate.
 - **`long_range_data_prediction.py`** may take **30 minutes to 3 hours** to run.
-
-## **How to Use the Dashboard**
-(Instructions for using the dashboard should be added here.)
+- If you are using anaconda environment, you have to activate your environment in Anaconda Prompt first, navigate to **`dashboard.py`**'s directory, then type **`streamlit run dashboard.py`**.
+- The dashboard may take up to 5 min when predicting long range data.
 
 ## **Dependencies**
 To run this project, you need the following Python libraries:
