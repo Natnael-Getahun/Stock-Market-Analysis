@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import mean_squared_error
 from prophet import Prophet
 import plotly.express as px
 import plotly.graph_objs as go
@@ -62,15 +62,6 @@ if cleaned_data.empty:
 else:
     st.success("Live data loaded successfully!") 
     
-
-
-# Function to calculate evaluation metrics 
-def calculate_metrics (y_true, y_pred):
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    mae = mean_absolute_error(y_true, y_pred)
-    mape = mean_absolute_percentage_error(y_true, y_pred)
-    return rmse, mae, mape
-   
 
 # Placeholder for real-time data updates
 placeholder = st.empty()
