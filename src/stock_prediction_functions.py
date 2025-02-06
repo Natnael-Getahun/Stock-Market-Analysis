@@ -1,6 +1,5 @@
 # Standard library Import
 import os
-import warnings
 import pickle
 
 
@@ -156,7 +155,7 @@ def clean_data(data, relevel_column=True, fill_na=True, winsorize_outliers=True,
         print("Columns re-leveled.")
 
     # Forward-fill missing values
-    if fill_na and data.isna().sum().max() > 0:
+    if fill_na and data.isna().sum().sum() > 0:
         data = data.ffill()
         print("Missing values filled with forward fill.")
 
@@ -317,7 +316,7 @@ def get_columns_outliers(data):
     return outlier_columns
     
 # A function to help in feature engineering and saving the data
-def feature_engineering_and_save_data(data, file_name, ema_span=20, bb_window=20, macd_fast=12, macd_slow=26, atr_window=14):
+def feature_engineering_and_save_data(data, save_data=True, file_name=None, ema_span=20, bb_window=20, macd_fast=12, macd_slow=26, atr_window=14):
     """
     Perform feature engineering on a stock market DataFrame by adding common technical indicators.
 
@@ -336,6 +335,8 @@ def feature_engineering_and_save_data(data, file_name, ema_span=20, bb_window=20
         Input DataFrame containing stock market data with the following columns:
         - 'Open', 'High', 'Low', 'Close', and 'Volume'.
         The DataFrame index must be a pandas DateTimeIndex.
+    save_data: book (default=True)
+        True if the final engineered data should be saved as a csv file.
     file_name : str
         The name with which the data will be saved ot the /Datasets/ directory.
 
@@ -399,12 +400,12 @@ def feature_engineering_and_save_data(data, file_name, ema_span=20, bb_window=20
     # Define the path to save the file
     file_path = f"Datasets/{file_name}.csv"
 
-    # Create the directory if it doesn't exist
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-    # Save the dataframe to CSV
-    data.to_csv(file_path)
-    print(f"Data saved as {file_path}")
+    if save_data == True:
+        # Create the directory if it doesn't exist
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        # Save the dataframe to CSV
+        data.to_csv(file_path)
+        print(f"Data saved as {file_path}")
     
     return data
 
@@ -483,22 +484,22 @@ def run_prophet(
     df['ds'] = df['ds'].dt.tz_localize(None)  # Remove timezone information
     df['y'] = np.log(df['y'])  # Apply log transformation for better trend modeling
 
-    if train:
-        # Create a holiday effect based on US Federal holidays
-        calendar = UnitedStates()
-        holidays = []
-        for year in range(data.index.min().year, data.index.max().year + 2):
-            holidays.extend(calendar.holidays(year))
+    # Create a holiday effect based on US Federal holidays
+    calendar = UnitedStates()
+    holidays = []
+    for year in range(data.index.min().year, data.index.max().year + 2):
+        holidays.extend(calendar.holidays(year))
         
-        # Convert holiday names to holiday dates
-        holiday_dates = [holiday[0] for holiday in holidays]  # Extract dates from holiday objects
-        holidays_df = pd.DataFrame({
-            'holiday': 'earnings_release',
-            'ds': pd.to_datetime(holiday_dates),
-            'lower_window': -5,  # Effect starts 5 days before
-            'upper_window': 5,   # Effect ends 5 days after
-        })
-        
+    # Convert holiday names to holiday dates
+    holiday_dates = [holiday[0] for holiday in holidays]  # Extract dates from holiday objects
+    holidays_df = pd.DataFrame({
+        'holiday': 'earnings_release',
+        'ds': pd.to_datetime(holiday_dates),
+        'lower_window': -5,  # Effect starts 5 days before
+        'upper_window': 5,   # Effect ends 5 days after
+    })
+
+    if train:    
         # Initialize Prophet model with provided parameters
         prophet = Prophet(
             seasonality_mode=seasonality_mode, 
@@ -572,10 +573,16 @@ def run_prophet(
         future['Volume'] = predict_regressor(df, 'Volume', periods)['yhat']
         future['MACD'] = predict_regressor(df, 'MACD', periods)['yhat']
         future['ATR'] = predict_regressor(df, 'ATR', periods)['yhat']
+
+        future = future.ffill()
         
         # Generate final predictions
         transformed_predictions = prophet.predict(future)
-        predictions = np.exp(transformed_predictions["yhat"])
+
+        # inverse-transforming predictions
+        predictions = transformed_predictions.copy()
+        for column in ["yhat", "yhat_lower", "yhat_upper"]:
+            predictions[column] = np.exp(predictions[column])
         print("Finished prediction.")
     
     return prophet, transformed_predictions, predictions
