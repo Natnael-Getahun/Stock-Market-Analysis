@@ -38,12 +38,14 @@ The project consists of three main scripts:
 4. The scripts will update and modify the datasets in **`/Datasets/`** and models in **`/Models/`** based on live data.
 
 ## **How to Use the Dashboard**
-1. After making sure all the necessary libraries are installed, run **`dashboard.py`**. This will lead you to a localhost webpage.
-2. From the sidebar, choose the ticker of the stock you want. 
-3. Choose the range of data you want to see from the side bar. This will display all hte plots and summary statistics in the dashboard.
-4. Again from the sidebar, choose the range of prediction you want to see.
-5. Click on the **Run Stock Prediction**.
-6. Enjoy insights into the future!
+1. After making sure all the necessary libraries are installed, open **command prompt** or **powershell**.
+2. CHange the directory to **'../Stock_Market_Analysis/Dashboard'**.
+3. Then type run **`streamlit run dashboard.py`**. This will lead you to a localhost webpage.
+4. From the sidebar, choose the ticker of the stock you want. 
+5. Choose the range of data you want to see from the side bar. This will display all hte plots and summary statistics in the dashboard.
+6. Again from the sidebar, choose the range of prediction you want to see.
+7. Click on the **Run Stock Prediction**.
+8. Enjoy insights into the future!
 
 ### **Important Notes**
 - Some models might take a long time to train and validate from scratch.
