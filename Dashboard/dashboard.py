@@ -242,11 +242,20 @@ if st.button("Run Stock Prediction Model"):
     # Display evaluation metrics
     st.markdown("### Evaluation Metrics")
     col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"<p style='color:white;'>RMSE: <span style='color:green;'>{rmse:.2f}</span></p>", unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"<p style='color:white;'>MSE: <span style='color:green;'>{mse:.2f}</span></p>", unsafe_allow_html=True)
 
+    highlight_color = "#FFD700"  # Gold color, visible in both dark and light themes
+
+    with col1:
+        st.markdown(
+            f"<p style='color:inherit;'>RMSE: <span style='color:{highlight_color};'>{rmse:.2f}</span></p>",
+            unsafe_allow_html=True,
+        )
+
+    with col2:
+        st.markdown(
+            f"<p style='color:inherit;'>MSE: <span style='color:{highlight_color};'>{mse:.2f}</span></p>",
+            unsafe_allow_html=True,
+        )
 
 
     
