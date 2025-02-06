@@ -13,7 +13,7 @@ prophet
 plotly
 matplotlib
 mplfinance
-seaborn
+seaborn 
 
 # Technical Analysis
 ta

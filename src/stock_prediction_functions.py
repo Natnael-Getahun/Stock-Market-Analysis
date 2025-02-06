@@ -59,7 +59,7 @@ def get_data(tickers, period="2y", interval="1h"):
     )
     return data
 
-# A function that explores the data to help in making data cleaning decisions
+# A function that explores the data to help in data cleaning
 def general_description(data):
     """
     Generates and prints general descriptive statistics and information for data cleaning purposes.
