@@ -16,7 +16,6 @@ mplfinance
 seaborn
 
 # Technical Analysis
-ta-lib
 ta
 
 # Holiday Calendars

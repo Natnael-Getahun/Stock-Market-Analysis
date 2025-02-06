@@ -46,9 +46,9 @@ The project consists of three main scripts:
 6. Enjoy insights into the future!
 
 ### **Important Notes**
-- Some models take a long time to train and validate.
-- **`long_range_data_prediction.py`** may take **30 minutes to 3 hours** to run.
-- If you are using anaconda environment, you have to activate your environment in Anaconda Prompt first, navigate to **`dashboard.py`**'s directory, then type **`streamlit run dashboard.py`**.
+- Some models might take a long time to train and validate from scratch.
+- **`long_range_data_prediction.py`** may take from **30 minutes to 3 hours** to run.
+- If you are using anaconda environment, you have to activate your environment in **Anaconda Prompt first**, navigate to **`dashboard.py`**'s directory, then type **`streamlit run dashboard.py`**.
 - The dashboard may take up to 5 min when predicting long range data.
 
 ## **Dependencies**
@@ -65,6 +65,7 @@ mplfinance      # Candlestick chart visualization
 seaborn         # Statistical data visualization
 ta              # Technical analysis indicators
 workalendar     # Handling market holidays
+streamlit       # dashboard development
 ```
 Install dependencies using:
 ```sh
